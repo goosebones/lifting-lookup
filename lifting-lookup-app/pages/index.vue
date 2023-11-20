@@ -13,9 +13,10 @@
       </v-row>
       <v-row>
         <v-col cols="12">
-          <LifterTable :lifters="displayedLifters"></LifterTable>
+          <LifterTable :lifters="lifters" :search="userSearch"></LifterTable>
         </v-col>
       </v-row>
+      <v-btn @click="fetch_lifters">lifters</v-btn>
     </v-container>
   </div>
 </template>
@@ -27,23 +28,30 @@ export default {
       userSearch: null,
       lifters: [
         {
-          name: "Gunther Kroth",
-          meet: "Collegiate Nationals",
+          lifter_name: "Gunther Kroth",
+          lifter_id: "djfkdjf",
+          meet_name: "Collegiate Nationals",
           meet_date: "4/14/23",
-          liftingcast_link:
-            "https://liftingcast.com/meets/meu6667bbobu/lifter/l1h32gb3jfk7/info",
+          meet_id: "djkfjdfk",
         },
       ],
     };
   },
-  computed: {
-    displayedLifters() {
-      if (!this.userSearch) return this.lifters;
-      return this.lifters.filter((lifter) => {
-        return Object.values(lifter).some((value) => {
-          return value.toLowerCase().includes(this.userSearch.toLowerCase());
-        });
-      });
+  // computed: {
+  //   displayedLifters() {
+  //     if (!this.userSearch) return this.lifters;
+  //     return this.lifters.filter((lifter) => {
+  //       return Object.values(lifter).some((value) => {
+  //         return value.toLowerCase().includes(this.userSearch.toLowerCase());
+  //       });
+  //     });
+  //   },
+  // },
+  methods: {
+    async fetch_lifters() {
+      const res = await this.$axios.get("/lifters");
+      const lifters = JSON.parse(res.data);
+      this.lifters = lifters;
     },
   },
 };

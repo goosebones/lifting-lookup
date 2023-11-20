@@ -1,27 +1,20 @@
 <template>
   <v-card variant="outlined">
-    <v-table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Meet</th>
-          <th>Date</th>
-          <th>Link</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="lifter in lifters" :key="lifter.lifter_id">
-          <td>{{ lifter.name }}</td>
-          <td>{{ lifter.meet }}</td>
-          <td>{{ lifter.meet_date }}</td>
-          <td>
-            <NuxtLink :to="lifter.liftingcast_link" target="_blank">
-              Details
-            </NuxtLink>
-          </td>
-        </tr>
-      </tbody>
-    </v-table>
+    <v-data-table
+      :headers="headers"
+      :items="lifters"
+      :search="search"
+      item-value="lifter_id"
+    >
+      <template v-slot:item.liftingcast_link="{ item: lifter }">
+        <NuxtLink
+          :to="`https://liftingcast.com/meets/${lifter.meet_id}/lifter/${lifter.lifter_id}/info`"
+          target="_blank"
+        >
+          Details
+        </NuxtLink>
+      </template>
+    </v-data-table>
   </v-card>
 </template>
 
@@ -32,6 +25,32 @@ export default {
       type: Array,
       required: true,
     },
+    search: {
+      type: String,
+      default: null,
+    },
+  },
+  data() {
+    return {
+      headers: [
+        {
+          title: "Lifter",
+          key: "lifter_name",
+        },
+        {
+          title: "Meet",
+          key: "meet_name",
+        },
+        {
+          title: "Meet Date",
+          key: "meet_date",
+        },
+        {
+          title: "Link",
+          key: "liftingcast_link",
+        },
+      ],
+    };
   },
 };
 </script>
