@@ -109,8 +109,9 @@ class LiftingCast:
 
         self.lifters = all_lifters
 
-        if os.path.exists(lifters_output_filename):
-            os.remove(lifters_output_filename)
+        lifter_file = os.path.join(os.path.dirname(__file__), lifters_output_filename)
+        if os.path.exists(lifter_file):
+            os.remove(lifter_file)
 
-        with open(lifters_output_filename, 'w') as f:
+        with open(lifter_file, 'w') as f:
             f.write(json.dumps(all_lifters))
