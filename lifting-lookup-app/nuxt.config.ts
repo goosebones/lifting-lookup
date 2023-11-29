@@ -22,7 +22,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      apiBaseUrl: 'http://localhost:8000'
+      apiBaseUrl: 'https://bnx2iizo91.execute-api.us-east-2.amazonaws.com/prod'
     }
   }
 })

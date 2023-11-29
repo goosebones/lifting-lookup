@@ -7,16 +7,25 @@
             v-model.trim="userSearch"
             variant="outlined"
             hide-details
-            label="Search for a name or meet"
+            label="Search for a lifter or meet"
           ></v-text-field>
         </v-col>
       </v-row>
       <v-row>
         <v-col cols="12">
-          <LifterTable :lifters="lifters" :search="userSearch"></LifterTable>
+          <LifterTable
+            :lifters="lifters"
+            :search="userSearch"
+            :loading="loading"
+          ></LifterTable>
         </v-col>
       </v-row>
-      <v-btn @click="fetch_lifters">lifters</v-btn>
+      <v-row>
+        <v-col cols="12" class="text-center">
+          <div>Data is refreshed every 24 hours</div>
+          <div v-if="lastUpdated">Last updated {{ lastUpdated }}</div>
+        </v-col>
+      </v-row>
     </v-container>
   </div>
 </template>
@@ -26,33 +35,23 @@ export default {
   data() {
     return {
       userSearch: null,
-      lifters: [
-        {
-          lifter_name: "Gunther Kroth",
-          lifter_id: "djfkdjf",
-          meet_name: "Collegiate Nationals",
-          meet_date: "4/14/23",
-          meet_id: "djkfjdfk",
-        },
-      ],
+      lifters: [],
+      lastUpdated: null,
+      loading: false,
     };
   },
-  // computed: {
-  //   displayedLifters() {
-  //     if (!this.userSearch) return this.lifters;
-  //     return this.lifters.filter((lifter) => {
-  //       return Object.values(lifter).some((value) => {
-  //         return value.toLowerCase().includes(this.userSearch.toLowerCase());
-  //       });
-  //     });
-  //   },
-  // },
-  methods: {
-    async fetch_lifters() {
-      const res = await this.$axios.get("/lifters");
-      const lifters = JSON.parse(res.data);
-      this.lifters = lifters;
-    },
+  async created() {
+    try {
+      this.loading = true;
+      const res = (await this.$axios.get("/lifter")).data.data;
+      this.lifters = JSON.parse(res.lifters);
+      this.lastUpdated = res.last_updated;
+    } catch {
+      // TODO toast
+      // something went wrong
+    } finally {
+      this.loading = false;
+    }
   },
 };
 </script>
