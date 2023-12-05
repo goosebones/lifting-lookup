@@ -5,7 +5,7 @@ ARG DISTRO_VERSION="3.12"
 
 
 # Stage 1
-FROM python:${RUNTIME_VERSION} AS python-alpine
+FROM python:${RUNTIME_VERSION}-alpine AS python-alpine
 
 RUN apk add --no-cache \
     libstdc++
