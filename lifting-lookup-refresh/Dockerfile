@@ -15,6 +15,7 @@ FROM python-alpine AS build-image
 
 RUN apk add --no-cache \
     build-base \
+    build-essential \
     libtool \
     autoconf \
     automake \
