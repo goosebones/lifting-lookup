@@ -22,7 +22,7 @@ class LiftingCast:
         options = webdriver.ChromeOptions()
         options.add_argument("headless")
         options.add_argument("--log-level=3")
-        options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        options.add_experimental_option("excludeSwitches", ["enable-logging"])
         driver = webdriver.Chrome(
             options=options, service=ChromeService(ChromeDriverManager().install())
         )
@@ -63,11 +63,11 @@ class LiftingCast:
                     driver = driver_queue.get(timeout=5)
             except queue.empty:
                 print(f"{meet['name']} could not get a driver from the queue")
-            
+
             meet_url = f"https://liftingcast.com/meets/{meet['meet_id']}/roster"
             driver.get(meet_url)
             wait = WebDriverWait(driver, timeout=5)
-            wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'meet-info-row')))
+            wait.until(EC.presence_of_element_located((By.CLASS_NAME, "meet-info-row")))
 
             lifters = driver.find_elements(By.TAG_NAME, "a")
             result = []
@@ -79,10 +79,10 @@ class LiftingCast:
                         "lifter_id": lifter_id,
                         "meet_name": meet["name"],
                         "meet_id": meet["meet_id"],
-                        "meet_date": meet["date"]
+                        "meet_date": meet["date"],
                     }
                 )
-            print(f"fetched {len(result)} lifters for {meet["name"]}")
+            print(f"fetched {len(result)} lifters for {meet['name']}")
 
             with lock:
                 result_list.extend(result)
@@ -97,7 +97,9 @@ class LiftingCast:
         self.fetch_meets()
         with ThreadPoolExecutor(number_of_drivers) as executor:
             for meet in self.meets:
-                executor.submit(fetch_lifters_from_meet, meet, driver_queue, all_lifters, lock)
+                executor.submit(
+                    fetch_lifters_from_meet, meet, driver_queue, all_lifters, lock
+                )
 
         for d in driver_queue.queue:
             d.quit()
