@@ -5,7 +5,7 @@ ARG DISTRO_VERSION="3.12"
 
 
 # Stage 1
-FROM python:${RUNTIME_VERSION}-alpine${DISTRO_VERSION} AS python-alpine
+FROM python:${RUNTIME_VERSION} AS python-alpine
 
 RUN apk add --no-cache \
     libstdc++
@@ -15,7 +15,6 @@ FROM python-alpine AS build-image
 
 RUN apk add --no-cache \
     build-base \
-    build-essential \
     libtool \
     autoconf \
     automake \
