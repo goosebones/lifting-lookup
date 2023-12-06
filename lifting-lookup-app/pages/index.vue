@@ -22,7 +22,6 @@
       </v-row>
       <v-row>
         <v-col cols="12" class="text-center">
-          <div>Data is refreshed every 24 hours</div>
           <div v-if="lastUpdated">Last updated {{ lastUpdated }}</div>
         </v-col>
       </v-row>
