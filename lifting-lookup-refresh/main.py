@@ -11,18 +11,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from concurrent.futures import ThreadPoolExecutor
-import threading
-import queue
 from tempfile import mkdtemp
 
 liftingcast_home = "https://liftingcast.com/"
-number_of_drivers_for_lifter_fetch = 12
+
+number_of_worker_threads = 3
 
 
 class LiftingCast:
     def __init__(self):
         self.meets = []
         self.lifters = []
+        self.driver = self.get_webdirver()
 
     def get_webdirver(self):
         options = webdriver.ChromeOptions()
@@ -47,11 +47,8 @@ class LiftingCast:
         return chrome
 
     def fetch_meets(self):
-        print("fm - getting driver")
-        driver = self.get_webdirver()
-        print("fm - getting liftingcast home")
-        driver.get(liftingcast_home)
-        tables = driver.find_elements(By.CLASS_NAME, "table")
+        self.driver.get(liftingcast_home)
+        tables = self.driver.find_elements(By.CLASS_NAME, "table")
         upcoming_meets = None
         recent_meets = None
         for table in tables:
@@ -72,23 +69,20 @@ class LiftingCast:
                     .split("/")[4]
                 )
                 meets.append({"name": name.text, "date": date.text, "meet_id": meet_id})
-        print("fm - finished")
         self.meets = meets
-        print(self.meets)
-        driver.quit()
 
     def fetch_lifters(self):
-        def fetch_lifters_from_meet(meet, driver_queue, result_list, lock):
-            try:
-                with lock:
-                    driver = driver_queue.get(timeout=5)
-            except queue.empty:
-                print(f"{meet['name']} could not get a driver from the queue")
-
+        def fetch_lifters_from_meet(meet, driver):
             meet_url = f"https://liftingcast.com/meets/{meet['meet_id']}/roster"
-            driver.get(meet_url)
-            wait = WebDriverWait(driver, timeout=5)
-            wait.until(EC.presence_of_element_located((By.CLASS_NAME, "meet-info-row")))
+            try:
+                driver.get(meet_url)
+                wait = WebDriverWait(driver, timeout=15)
+                wait.until(
+                    EC.presence_of_element_located((By.CLASS_NAME, "meet-info-row"))
+                )
+            except Exception as e:
+                print("EXCEPTION WHILE WAITING FOR " + meet["name"] + " TO LOAD")
+                print(e)
 
             lifters = driver.find_elements(By.TAG_NAME, "a")
             result = []
@@ -104,33 +98,27 @@ class LiftingCast:
                     }
                 )
             print(f"fetched {len(result)} lifters for {meet['name']}")
+            return result
 
-            with lock:
-                result_list.extend(result)
-                driver_queue.put(driver)
+        def process_meets(meets):
+            driver = self.get_webdirver()
+            result_collector = []
+            for meet in meets:
+                result_collector.extend(fetch_lifters_from_meet(meet, driver))
+            return result_collector
 
-        print("fl - initialzing drivers")
-        number_of_drivers = number_of_drivers_for_lifter_fetch
-        driver_queue = queue.Queue(number_of_drivers)
-        for d in range(number_of_drivers):
-            driver_queue.put(self.get_webdirver())
-        all_lifters = []
-        lock = threading.Lock()
-        print("fl - ready to thread")
-        print(driver_queue)
-        print(self.meets)
-        print(lock)
-        with ThreadPoolExecutor(number_of_drivers) as executor:
-            print(executor)
-            for meet in self.meets:
-                executor.submit(
-                    fetch_lifters_from_meet, meet, driver_queue, all_lifters, lock
-                )
+        def split_list_into_chunks(l, nchunks):
+            for i in range(nchunks):
+                yield l[i::nchunks]
 
-        for d in driver_queue.queue:
-            d.quit()
+        meet_buckets = split_list_into_chunks(self.meets, number_of_worker_threads)
 
-        self.lifters = all_lifters
+        with ThreadPoolExecutor(number_of_worker_threads) as executor:
+            futures = [
+                executor.submit(process_meets, bucket) for bucket in meet_buckets
+            ]
+        result = [f.result() for f in futures]
+        self.lifters = [lifter for meet in result for lifter in meet]
 
 
 def handler(event=None, context=None):
@@ -196,4 +184,3 @@ def handler(event=None, context=None):
     # all done
     print("DONE")
     return "Success"
-
