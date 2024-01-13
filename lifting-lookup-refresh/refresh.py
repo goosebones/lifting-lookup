@@ -11,44 +11,42 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from concurrent.futures import ThreadPoolExecutor
-from tempfile import mkdtemp
 
 liftingcast_home = "https://liftingcast.com/"
 
 number_of_worker_threads = 3
 
 
+def split_list_into_chunks(l, nchunks):
+    for i in range(nchunks):
+        yield l[i::nchunks]
+
+
 class LiftingCast:
     def __init__(self):
         self.meets = []
+        self.failed_meets = []
         self.lifters = []
-        self.driver = self.get_webdirver()
 
     def get_webdirver(self):
         options = webdriver.ChromeOptions()
-        service = webdriver.ChromeService("/opt/chromedriver")
-        options.binary_location = "/opt/chrome/chrome"
-
-        options.add_argument("--headless=new")
-        options.add_argument("--no-sandbox")
+        options.add_argument("--headless")
         options.add_argument("--disable-gpu")
-        options.add_argument("--window-size=1280x1696")
-        options.add_argument("--single-process")
+        options.add_argument("--no-sandbox")
+        options.add_argument("enable-automation")
+        options.add_argument("--disable-infobars")
         options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--disable-dev-tools")
-        options.add_argument("--no-zygote")
-        options.add_argument(f"--user-data-dir={mkdtemp()}")
-        options.add_argument(f"--data-path={mkdtemp()}")
-        options.add_argument(f"--disk-cache-dir={mkdtemp()}")
-        options.add_argument("--remote-debugging-port=9222")
+        # service = webdriver.ChromeService("/usr/bin/chromedriver")
+        # driver = webdriver.Chrome(options=options, service=service)
+        driver = webdriver.Chrome(options=options)
 
-        chrome = webdriver.Chrome(options=options, service=service)
-        chrome.implicitly_wait(2)
-        return chrome
+        driver.implicitly_wait(2)
+        return driver
 
     def fetch_meets(self):
-        self.driver.get(liftingcast_home)
-        tables = self.driver.find_elements(By.CLASS_NAME, "table")
+        driver = self.get_webdirver()
+        driver.get(liftingcast_home)
+        tables = driver.find_elements(By.CLASS_NAME, "table")
         upcoming_meets = None
         recent_meets = None
         for table in tables:
@@ -70,55 +68,72 @@ class LiftingCast:
                 )
                 meets.append({"name": name.text, "date": date.text, "meet_id": meet_id})
         self.meets = meets
+        driver.quit()
 
-    def fetch_lifters(self):
-        def fetch_lifters_from_meet(meet, driver):
-            meet_url = f"https://liftingcast.com/meets/{meet['meet_id']}/roster"
-            try:
-                driver.get(meet_url)
-                wait = WebDriverWait(driver, timeout=15)
-                wait.until(
-                    EC.presence_of_element_located((By.CLASS_NAME, "meet-info-row"))
-                )
-            except Exception as e:
-                print("EXCEPTION WHILE WAITING FOR " + meet["name"] + " TO LOAD")
-                print(e)
+    def fetch_lifters_from_meet(self, meet, driver):
+        meet_url = f"https://liftingcast.com/meets/{meet['meet_id']}/roster"
+        try:
+            driver.get(meet_url)
+            wait = WebDriverWait(driver, timeout=15)
+            wait.until(EC.presence_of_element_located((By.CLASS_NAME, "meet-info-row")))
+        except Exception as e:
+            print("EXCEPTION WHILE WAITING FOR " + meet["name"] + " TO LOAD")
+            print(e)
+            self.failed_meets.append(meet)
+            return []
 
-            lifters = driver.find_elements(By.TAG_NAME, "a")
-            result = []
-            for lifter in lifters:
-                lifter_id = lifter.get_attribute("href").split("/")[-1]
-                result.append(
-                    {
-                        "lifter_name": lifter.text,
-                        "lifter_id": lifter_id,
-                        "meet_name": meet["name"],
-                        "meet_id": meet["meet_id"],
-                        "meet_date": meet["date"],
-                    }
-                )
-            print(f"fetched {len(result)} lifters for {meet['name']}")
-            return result
+        lifters = driver.find_elements(By.TAG_NAME, "a")
+        result = []
+        for lifter in lifters:
+            lifter_id = lifter.get_attribute("href").split("/")[-1]
+            result.append(
+                {
+                    "lifter_name": lifter.text,
+                    "lifter_id": lifter_id,
+                    "meet_name": meet["name"],
+                    "meet_id": meet["meet_id"],
+                    "meet_date": meet["date"],
+                }
+            )
+        print(f"fetched {len(result)} lifters for {meet['name']}")
+        return result
 
-        def process_meets(meets):
-            driver = self.get_webdirver()
-            result_collector = []
-            for meet in meets:
-                result_collector.extend(fetch_lifters_from_meet(meet, driver))
-            return result_collector
+    def process_meets(self, meets):
+        driver = self.get_webdirver()
+        result_collector = []
+        for meet in meets:
+            result_collector.extend(self.fetch_lifters_from_meet(meet, driver))
+        driver.quit()
 
-        def split_list_into_chunks(l, nchunks):
-            for i in range(nchunks):
-                yield l[i::nchunks]
+        return result_collector
 
-        meet_buckets = split_list_into_chunks(self.meets, number_of_worker_threads)
+    def begin_threaded_search(self, meets):
+        meet_buckets = split_list_into_chunks(meets, number_of_worker_threads)
 
         with ThreadPoolExecutor(number_of_worker_threads) as executor:
             futures = [
-                executor.submit(process_meets, bucket) for bucket in meet_buckets
+                executor.submit(self.process_meets, bucket) for bucket in meet_buckets
             ]
         result = [f.result() for f in futures]
-        self.lifters = [lifter for meet in result for lifter in meet]
+        return [lifter for meet in result for lifter in meet]
+
+    def fetch_lifters(self):
+        result = self.begin_threaded_search(self.meets)
+        print("initial search done. " + str(len(self.failed_meets)) + " meets failed.")
+        while len(self.failed_meets):
+            print(
+                "starting passthrough of failed meets. "
+                + str(len(self.failed_meets))
+                + " meets need to be processed."
+            )
+            meets_to_process = []
+            for meet in self.failed_meets:
+                meets_to_process.append(meet)
+            self.failed_meets = []
+            successful_meets = self.begin_threaded_search(meets_to_process)
+            print("failed_meet iteration finished.")
+            result.extend(successful_meets)
+        self.lifters = result
 
 
 def handler(event=None, context=None):
@@ -137,6 +152,7 @@ def handler(event=None, context=None):
     L.fetch_meets()
     print("Fetching lifters")
     L.fetch_lifters()
+
     scraped_lifters = pd.DataFrame(L.lifters)
 
     # lifters that we are currently storing
@@ -184,3 +200,6 @@ def handler(event=None, context=None):
     # all done
     print("DONE")
     return "Success"
+
+
+handler()
