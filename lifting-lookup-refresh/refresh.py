@@ -1,22 +1,11 @@
-import awswrangler as wr
-import boto3
-from dotenv import load_dotenv
 import pandas as pd
-import os
 from datetime import datetime
 
 from lifting_cast import LiftingCast
+from dynamo import DynamoLifter, DynamoLifterUpdate
 
 
 def refresh():
-    # set up aws stuff
-    print("Initializing environment")
-    load_dotenv()
-    region = os.environ.get("AWS_REGION")
-    lifter_table_name = os.environ.get("AWS_DYNAMO_LIFTER_TABLE_NAME")
-    lifter_update_table_name = os.environ.get("AWS_DYNAMO_LIFTER_UPDATE_TABLE_NAME")
-    boto3.setup_default_session(region_name=region)
-
     # fetch lifters
     print("Initializing LiftingCast")
     L = LiftingCast()
@@ -29,9 +18,8 @@ def refresh():
 
     # lifters that we are currently storing
     print("Fetching lifters from dynamo")
-    stored_lifters = wr.dynamodb.read_items(
-        table_name=lifter_table_name, allow_full_scan=True
-    )
+    aws_lifter = DynamoLifter()
+    stored_lifters = aws_lifter.get_lifters()
 
     # create two dataframes for each action we need to do
     lifters_to_delete = pd.DataFrame()
@@ -47,26 +35,18 @@ def refresh():
     # delete any lifters we are currenlty storing that we did not scrape
     print(f"{len(lifters_to_delete.index)} lifters to delete")
     if "lifter_id" in lifters_to_delete.columns:
-        wr.dynamodb.delete_items(
-            items=lifters_to_delete.to_dict("records"), table_name=lifter_table_name
-        )
+        aws_lifter.delete_lifters(lifters_to_delete)
 
     # insert any lifters we scraped that we are currently not storing
     print(f"{len(lifters_to_insert.index)} lifters to insert")
     if "lifter_id" in lifters_to_insert.columns:
-        wr.dynamodb.put_df(df=lifters_to_insert, table_name=lifter_table_name)
+        aws_lifter.insert_lifters(lifters_to_insert)
 
     # make note of the update we just did
     print(f"recording update datetime")
-    wr.dynamodb.put_items(
-        items=[
-            {
-                "update_datetime": str(datetime.now()),
-                "insertion_count": len(lifters_to_insert.index),
-                "deletion_count": len(lifters_to_delete.index),
-            }
-        ],
-        table_name=lifter_update_table_name,
+    aws_lifter_update = DynamoLifterUpdate()
+    aws_lifter_update.insert_lifter_update(
+        str(datetime.now()), len(lifters_to_insert.index), len(lifters_to_delete.index)
     )
 
     # all done
