@@ -13,12 +13,18 @@ export default defineNuxtConfig({
     },
     //...
   ],
+  alias: {
+    './runtimeConfig': './runtimeConfig.browser'
+  },
   vite: {
     vue: {
       template: {
         transformAssetUrls,
       },
     },
+    define: {
+      'window.global': {}
+    }
   },
   runtimeConfig: {
     public: {
