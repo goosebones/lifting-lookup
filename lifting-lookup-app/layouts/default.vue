@@ -6,7 +6,7 @@
           <v-col cols="12" class="d-flex">
             <v-btn :to="'/'" icon="mdi-home"></v-btn>
             <v-spacer />
-            <v-btn :to="'/account'">Account</v-btn>
+            <v-btn :to="'/account'" variant="outlined">Account</v-btn>
           </v-col>
         </v-row>
         <slot />
@@ -16,7 +16,5 @@
 </template>
 
 <script>
-import { getCurrentUser } from "aws-amplify/auth";
-
 export default {};
 </script>

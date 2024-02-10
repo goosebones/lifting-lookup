@@ -38,7 +38,6 @@ export default {
     };
   },
   async created() {
-    return;
     try {
       this.loading = true;
       const res = (await this.$axios.get("/lifter")).data.data;

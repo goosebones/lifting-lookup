@@ -3,8 +3,10 @@
     <Authenticator>
       <template v-slot="{ user, signOut }">
         <v-row>
+          <v-col cols="12"> Hello, {{ user.signInDetails.loginId }} </v-col>
           <v-col cols="12" md="2">
             <v-card variant="outlined">
+              <v-card-title>Navigation</v-card-title>
               <v-list>
                 <v-list-item :to="'/account/vip'" nuxt>
                   VIP Lifter Notifications
@@ -16,7 +18,7 @@
             </v-card>
           </v-col>
           <v-col cols="12" md="10">
-            <NuxtPage></NuxtPage>
+            <NuxtPage :user-info="user"></NuxtPage>
           </v-col>
         </v-row>
       </template>
