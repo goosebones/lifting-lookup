@@ -14,6 +14,9 @@
     "categories": {
       "auth": {
         "liftinglookupapp": {}
+      },
+      "api": {
+        "liftinglookupappapi": {}
       }
     }
   }
