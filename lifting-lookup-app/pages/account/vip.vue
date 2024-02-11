@@ -9,7 +9,15 @@
         roster of a meet. This removal notification will only happen if the meet
         is upcoming.
         <v-row>
-          <v-col cols="12" class="d-flex justify-end">
+          <v-col cols="12" class="d-flex justify-space-between align-end">
+            <div
+              class="text-h6"
+              :class="isAtOrAboveSubscriptionCountLimit ? 'text-red' : ''"
+            >
+              Lifter limit:
+              {{ this.lifters.length }} /
+              {{ this.subscriptionCountLimit }}
+            </div>
             <v-btn
               @click="fetchLifters"
               :disabled="saveInProgress"
@@ -43,14 +51,18 @@
         </v-row>
         <v-row>
           <v-col cols="12">
-            <v-btn @click="addLifter" icon="mdi-plus"></v-btn>
+            <v-btn
+              @click="addLifter"
+              icon="mdi-plus"
+              :disabled="isAtOrAboveSubscriptionCountLimit"
+            ></v-btn>
           </v-col>
         </v-row>
       </v-card-text>
       <v-card-actions class="d-flex justify-center">
         <v-btn
           @click="saveChanges"
-          :disabled="fetchInProgress"
+          :disabled="fetchInProgress || isAboveSubscriptionCountLimit"
           :loading="saveInProgress"
           variant="outlined"
         >
@@ -90,7 +102,16 @@ export default {
       fetchInProgress: false,
       saveInProgress: false,
       existingRecordId: null,
+      subscriptionCountLimit: 25,
     };
+  },
+  computed: {
+    isAtOrAboveSubscriptionCountLimit() {
+      return this.lifters.length >= this.subscriptionCountLimit;
+    },
+    isAboveSubscriptionCountLimit() {
+      return this.lifters.length > this.subscriptionCountLimit;
+    },
   },
   async created() {
     await this.fetchLifters();
@@ -122,6 +143,9 @@ export default {
       }
     },
     async saveChanges() {
+      if (this.isAboveSubscriptionCountLimit) {
+        this.$toast.error("You have exceeded lifter limit");
+      }
       try {
         this.saveInProgress = true;
         const res = await this.apiClient.graphql({
@@ -143,6 +167,12 @@ export default {
       }
     },
     addLifter() {
+      if (this.lifters.length == this.subscriptionCountLimit) {
+        this.$toast.error(
+          `${this.subscriptionCountLimit} lifter limit reached`
+        );
+        return;
+      }
       this.lifters.push({
         id: uuidv4(),
         lifter_name: null,
