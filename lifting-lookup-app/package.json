@@ -21,6 +21,7 @@
     "@aws-amplify/ui-vue": "^4.0.7",
     "@mdi/font": "^7.3.67",
     "aws-amplify": "^6.0.12",
-    "axios": "^1.6.2"
+    "axios": "^1.6.2",
+    "vue-toastification": "^2.0.0-rc.5"
   }
 }

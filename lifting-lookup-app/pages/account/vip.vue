@@ -163,6 +163,7 @@ export default {
           },
         });
         await this.fetchLifters();
+        this.$toast.success("Save successful");
       } finally {
         this.saveInProgress = false;
       }
