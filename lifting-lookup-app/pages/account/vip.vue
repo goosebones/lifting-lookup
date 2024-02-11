@@ -22,6 +22,7 @@
               @click="fetchLifters"
               :disabled="saveInProgress"
               :loading="fetchInProgress"
+              variant="outlined"
             >
               Revert Changes
             </v-btn>
