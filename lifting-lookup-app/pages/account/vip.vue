@@ -36,10 +36,11 @@
         >
           <v-col cols="10">
             <v-text-field
-              v-model="lifter.lifter_name"
+              v-model.trim="lifter.lifter_name"
               label="Lifter Name"
               hide-details
               variant="outlined"
+              :error="lifter.lifter_name == null || lifter.lifter_name == ''"
             ></v-text-field>
           </v-col>
           <v-col cols="2" class="d-flex justify-center">
@@ -63,7 +64,11 @@
       <v-card-actions class="d-flex justify-center">
         <v-btn
           @click="saveChanges"
-          :disabled="fetchInProgress || isAboveSubscriptionCountLimit"
+          :disabled="
+            fetchInProgress ||
+            isAboveSubscriptionCountLimit ||
+            !isLiftersListValid
+          "
           :loading="saveInProgress"
           variant="outlined"
         >
@@ -113,6 +118,11 @@ export default {
     isAboveSubscriptionCountLimit() {
       return this.lifters.length > this.subscriptionCountLimit;
     },
+    isLiftersListValid() {
+      return this.lifters.every((l) => {
+        return l.lifter_name !== null && l.lifter_name !== "";
+      });
+    },
   },
   async created() {
     await this.fetchLifters();
@@ -146,6 +156,11 @@ export default {
     async saveChanges() {
       if (this.isAboveSubscriptionCountLimit) {
         this.$toast.error("You have exceeded lifter limit");
+        return;
+      }
+      if (!this.isLiftersListValid) {
+        this.$toast.error("Invalid input(s)");
+        return;
       }
       try {
         this.saveInProgress = true;
