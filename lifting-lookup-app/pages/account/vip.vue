@@ -137,6 +137,7 @@ export default {
             },
           },
         });
+        await this.fetchLifters();
       } finally {
         this.saveInProgress = false;
       }
