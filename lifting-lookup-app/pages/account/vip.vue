@@ -207,9 +207,9 @@ export default {
             : createVIPLifterSubscription,
           variables: {
             input: {
-              subscriber_email: this.userInfo.signInDetails.loginId,
+              subscriber_email: this.userInfo.email,
               subscription_list: this.lifters.map((l) => l.lifter_name),
-              owner: this.userInfo.userId,
+              owner: this.userInfo.sub,
               ...(!!this.existingRecordId && { id: this.existingRecordId }),
             },
           },
