@@ -183,6 +183,8 @@ export default {
         });
         this.existingRecordId = existingRecord.id;
         return this.lifters;
+      } catch {
+        this.$toast.error("Error initializing lifter list");
       } finally {
         if (this.lifters.length == 0) this.addLifter();
         this.fetchInProgress = false;
@@ -214,6 +216,8 @@ export default {
         });
         await this.fetchLifters();
         this.$toast.success("Save successful");
+      } catch {
+        this.$toast.error("Error saving changes. Please try again.");
       } finally {
         this.saveInProgress = false;
       }

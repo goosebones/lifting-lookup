@@ -44,8 +44,7 @@ export default {
       this.lifters = JSON.parse(res.lifters);
       this.lastUpdated = res.last_updated;
     } catch {
-      // TODO toast
-      // something went wrong
+      this.$toast.error("Error loading lifters");
     } finally {
       this.loading = false;
     }
