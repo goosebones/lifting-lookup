@@ -3,11 +3,45 @@
     <v-card variant="outlined" :disabled="fetchInProgress || saveInProgress">
       <v-card-title>VIP Lifter Notifications</v-card-title>
       <v-card-text>
-        Create a list of lifters and get notified when they sign up for a meet.
-        <br />
-        You can also choose to get notified when a lifter gets removed from the
-        roster of a meet. This removal notification will only happen if the meet
-        is upcoming.
+        <v-row>
+          <v-col cols="12">
+            Create a list of lifters and get notified when they sign up for a
+            meet.
+            <div
+              @click="showDetails = !showDetails"
+              class="my-1 text-decoration-underline"
+            >
+              {{ showDetails ? "Hide Details" : "Show Details" }}
+              <v-icon size="small">{{
+                showDetails
+                  ? "mdi-chevron-double-up"
+                  : "mdi-chevron-double-down"
+              }}</v-icon>
+            </div>
+            <v-slide-y-transition>
+              <div v-show="showDetails">
+                • When a lifter signs up for a meet, you will recieve an email.
+                If several of your lifters sign up for a meet, you will recieve
+                one email detailing all of the signups.
+                <br />
+                • LiftingLookup refreshes every 24 hours - your list of lifters
+                to get notified for will be checked during this refresh.
+                <br />
+                • Implementation notes: When checking to see if any of your
+                lifters are new signups, the name of the lifter will be stripped
+                of all whitespace characters, numbers, and hyphens. This is done
+                to catch things like lot numbers in lifter names.
+                <br />
+                • Example: You choose to get notified when 'John Doe' signs up
+                for a meet. If John Doe then signs up for a meet and gets
+                assigned a lot number, his name will appear as '123 - John Doe'.
+                LiftingLookup will convert both names to 'johndoe', a match will
+                be found, and you will get a notification.
+              </div>
+            </v-slide-y-transition>
+          </v-col>
+        </v-row>
+
         <v-row>
           <v-col cols="12" class="d-flex justify-space-between align-end">
             <div
@@ -109,6 +143,7 @@ export default {
       saveInProgress: false,
       existingRecordId: null,
       subscriptionCountLimit: 25,
+      showDetails: false,
     };
   },
   computed: {
