@@ -10,7 +10,7 @@
               <v-card-title>Navigation</v-card-title>
               <v-list>
                 <v-list-item :to="'/account/vip'" nuxt>
-                  VIP Lifter Notifications
+                  VIP Lifter Notifications (Beta)
                 </v-list-item>
                 <v-list-item @click="handleSignOut(signOut)">
                   Sign Out

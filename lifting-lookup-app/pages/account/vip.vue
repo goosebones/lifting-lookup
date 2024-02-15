@@ -1,12 +1,18 @@
 <template>
   <div>
     <v-card variant="outlined" :disabled="fetchInProgress || saveInProgress">
-      <v-card-title>VIP Lifter Notifications</v-card-title>
+      <v-card-title>VIP Lifter Notifications (Beta)</v-card-title>
       <v-card-text>
         <v-row>
           <v-col cols="12">
             Create a list of lifters and get notified when they sign up for a
             meet.
+            <br />
+            <div class="font-weight-bold text-purple text-h6">
+              This feature is still in beta. If you decide to use it, please be
+              open to sharing any bugs or unexpected behaviors you may
+              encounter.
+            </div>
             <div
               @click="showDetails = !showDetails"
               class="my-1 text-decoration-underline"
