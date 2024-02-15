@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import os
 import re
 from time import sleep
-
+import pandas as pd
 
 print("Initializing environment")
 load_dotenv()
@@ -56,9 +56,12 @@ class DynamoVIPLifterSubscription:
         )
 
     def get_vip_lifter_subscriptions(self):
-        return wr.dynamodb.read_items(
-            table_name=self.vip_lifter_subscription_table_name, allow_full_scan=True
+        subs = wr.dynamodb.read_items(
+            table_name=self.vip_lifter_subscription_table_name,
+            allow_full_scan=True,
+            as_dataframe=False,
         )
+        return pd.DataFrame(subs)
 
     def get_notification_list(self, subscriptions, lifters):
         def scrub_lifter_lifter_name(lifter):
@@ -66,8 +69,10 @@ class DynamoVIPLifterSubscription:
             scrubbed_name = re.sub(r"[\d\s-]+", "", name).lower()
             return scrubbed_name
 
-        subscriptions.explode("subscription_list")
+        subscriptions = subscriptions.explode("subscription_list")
         subscriptions.rename(columns={"subscription_list": "lifter_name"}, inplace=True)
+        # TODO add check to make sure date of meet is past current date
+        subscriptions = subscriptions[subscriptions["lifter_name"].notna()]
         lifters["scrubbed_lifter_name"] = lifters.apply(
             scrub_lifter_lifter_name, axis=1
         )
@@ -89,7 +94,7 @@ class SESVIPLifterNotification:
         <p>This notification is to alert you of the following lifters registerting for a meet:</p>
         """
         for lifter in lifter_notifications:
-            body += f"""<li>{lifter['lifter_name_y']} - <a href="{f'https://liftingcast.com/meets/{lifter['meet_id']}/lifter/{lifter['lifter_id']}/info'}">{lifter['meet_name']}</a></li>"""
+            body += f"""<li>{lifter['lifter_name_x']} - <a href="{f'https://liftingcast.com/meets/{lifter['meet_id']}/lifter/{lifter['lifter_id']}/info'}">{lifter['meet_name']}</a></li>"""
 
         body += f"""
         <p>To update your VIP Lifter Notification settings, please visit <a href="liftinglookup.com/account/vip">LiftingLookup</a>.
@@ -104,11 +109,16 @@ class SESVIPLifterNotification:
         }
         for subscriber_email, lifter_notifications in emails_dict.items():
             print(
-                f"SENDING EMAIL TO {subscriber_email} FOR {lifter_notifications.length} LIFTERS"
+                f"SENDING EMAIL TO {subscriber_email} FOR {len(lifter_notifications)} LIFTERS"
             )
             send_args = {
                 "Source": "vip-notification@liftinglookup.com",
-                "Destination": {"ToAddresses": [subscriber_email]},
+                "Destination": {
+                    "ToAddresses": [
+                        subscriber_email,
+                        "vip-notification@liftinglookup.com",
+                    ]
+                },
                 "Message": {
                     "Subject": {"Data": "LiftingLookup VIP Lifter Notification"},
                     "Body": {
