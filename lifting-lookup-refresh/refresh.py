@@ -2,7 +2,12 @@ import pandas as pd
 from datetime import datetime
 
 from lifting_cast import LiftingCast
-from dynamo import DynamoLifter, DynamoLifterUpdate
+from aws import (
+    DynamoLifter,
+    DynamoLifterUpdate,
+    DynamoVIPLifterSubscription,
+    SESVIPLifterNotification,
+)
 
 
 def refresh():
@@ -48,6 +53,19 @@ def refresh():
     aws_lifter_update.insert_lifter_update(
         str(datetime.now()), len(lifters_to_insert.index), len(lifters_to_delete.index)
     )
+
+    # VIP notifications
+    print("fetching VIP lifter notifications")
+    aws_vip_lifter_notifications = DynamoVIPLifterSubscription()
+    subscriptions = aws_vip_lifter_notifications.get_vip_lifter_subscriptions()
+
+    # send notifications
+    print("sending VIP lifter notification emails")
+    notifications = aws_vip_lifter_notifications.get_notification_list(
+        subscriptions, lifters_to_insert
+    )
+    ses_emailer = SESVIPLifterNotification()
+    ses_emailer.send_vip_lifter_notification_emails(notifications)
 
     # all done
     print("DONE")
