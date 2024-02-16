@@ -99,7 +99,7 @@ class SESVIPLifterNotification:
         <p>This notification is to alert you of the following lifters registerting for a meet:</p>
         """
         for lifter in lifter_notifications:
-            body += f"""<li>{lifter['lifter_name_x']} - <a href="{f'https://liftingcast.com/meets/{lifter['meet_id']}/lifter/{lifter['lifter_id']}/info'}">{lifter['meet_name']}</a></li>"""
+            body += f"""<li>{lifter['lifter_name_x']} - <a href="https://liftingcast.com/meets/{lifter['meet_id']}/lifter/{lifter['lifter_id']}/info">{lifter['meet_name']}</a></li>"""
 
         body += f"""
         <p>To update your VIP Lifter Notification settings, please visit <a href="liftinglookup.com/account/vip">LiftingLookup</a>.
