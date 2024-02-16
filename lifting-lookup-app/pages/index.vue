@@ -21,7 +21,7 @@
     </v-row>
     <v-row>
       <v-col cols="12" class="text-center">
-        <div v-if="lastUpdated">Last updated {{ lastUpdated }}</div>
+        <div v-if="lastUpdated">Last updated {{ lastUpdated }} UTC</div>
       </v-col>
     </v-row>
   </div>
