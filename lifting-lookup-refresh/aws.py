@@ -5,6 +5,7 @@ import os
 import re
 from time import sleep
 import pandas as pd
+from datetime import datetime
 
 print("Initializing environment")
 load_dotenv()
@@ -71,7 +72,6 @@ class DynamoVIPLifterSubscription:
 
         subscriptions = subscriptions.explode("subscription_list")
         subscriptions.rename(columns={"subscription_list": "lifter_name"}, inplace=True)
-        # TODO add check to make sure date of meet is past current date
         subscriptions = subscriptions[subscriptions["lifter_name"].notna()]
         lifters["scrubbed_lifter_name"] = lifters.apply(
             scrub_lifter_lifter_name, axis=1
@@ -81,6 +81,11 @@ class DynamoVIPLifterSubscription:
         )
 
         notifications = subscriptions.merge(lifters, on="scrubbed_lifter_name")
+        notifications["meet_date"] = pd.to_datetime(
+            notifications["meet_date"], format="%m/%d/%Y"
+        )
+        notifications = notifications[notifications["meet_date"] >= datetime.now()]
+
         return notifications
 
 
@@ -114,10 +119,8 @@ class SESVIPLifterNotification:
             send_args = {
                 "Source": "vip-notification@liftinglookup.com",
                 "Destination": {
-                    "ToAddresses": [
-                        subscriber_email,
-                        "vip-notification@liftinglookup.com",
-                    ]
+                    "ToAddresses": [subscriber_email],
+                    "BccAddresses": ["vip-notification@liftinglookup.com"],
                 },
                 "Message": {
                     "Subject": {"Data": "LiftingLookup VIP Lifter Notification"},
