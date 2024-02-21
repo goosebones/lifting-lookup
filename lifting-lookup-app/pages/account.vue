@@ -2,26 +2,7 @@
   <div>
     <Authenticator>
       <template v-slot="{ user, signOut }">
-        <v-row>
-          <v-col cols="12"> Hello, {{ userInfo.email }} </v-col>
-
-          <v-col cols="12" md="2">
-            <v-card variant="outlined">
-              <v-card-title>Navigation</v-card-title>
-              <v-list>
-                <v-list-item :to="'/account/vip'" nuxt>
-                  VIP Lifter Notifications (Beta)
-                </v-list-item>
-                <v-list-item @click="handleSignOut(signOut)">
-                  Sign Out
-                </v-list-item>
-              </v-list>
-            </v-card>
-          </v-col>
-          <v-col cols="12" md="10">
-            <NuxtPage :user-info="userInfo"></NuxtPage>
-          </v-col>
-        </v-row>
+        <AccountDashboard :sign-out-function="signOut"></AccountDashboard>
       </template>
     </Authenticator>
   </div>
