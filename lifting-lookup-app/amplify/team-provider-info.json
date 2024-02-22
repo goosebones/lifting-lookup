@@ -1,4 +1,22 @@
 {
+  "production": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-liftinglookupapp-production-42700-authRole",
+      "UnauthRoleArn": "arn:aws:iam::248898759724:role/amplify-liftinglookupapp-production-42700-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::248898759724:role/amplify-liftinglookupapp-production-42700-authRole",
+      "Region": "us-east-2",
+      "DeploymentBucketName": "amplify-liftinglookupapp-production-42700-deployment",
+      "UnauthRoleName": "amplify-liftinglookupapp-production-42700-unauthRole",
+      "StackName": "amplify-liftinglookupapp-production-42700",
+      "StackId": "arn:aws:cloudformation:us-east-2:248898759724:stack/amplify-liftinglookupapp-production-42700/9f39fcb0-d13a-11ee-a352-02d0051784c1",
+      "AmplifyAppId": "d33f2oy9cdpn2z"
+    },
+    "categories": {
+      "auth": {
+        "liftinglookupapp": {}
+      }
+    }
+  },
   "staging": {
     "awscloudformation": {
       "AuthRoleName": "amplify-amplify076825a2a4914-staging-32223-authRole",
