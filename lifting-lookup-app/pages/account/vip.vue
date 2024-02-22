@@ -148,7 +148,7 @@ export default {
       fetchInProgress: false,
       saveInProgress: false,
       existingRecordId: null,
-      subscriptionCountLimit: 25,
+      subscriptionCountLimit: 100,
       showDetails: false,
     };
   },
