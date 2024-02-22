@@ -33,6 +33,12 @@ class LiftingCast:
     def fetch_meets(self):
         driver = self.get_webdirver()
         driver.get(liftingcast_home)
+        # liftingcast will hide list of meets behind a "show more" button
+        buttons = driver.find_elements(By.CLASS_NAME, "meet-table-show-more")
+        for button in buttons:
+            b = button.find_element(By.XPATH, ("./button"))
+            b.click()
+        # get list of meets now that lists are expanded
         tables = driver.find_elements(By.CLASS_NAME, "table")
         upcoming_meets = None
         recent_meets = None
