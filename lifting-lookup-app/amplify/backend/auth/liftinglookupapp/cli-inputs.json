@@ -3,7 +3,7 @@
   "cognitoConfig": {
     "identityPoolName": "testAuthIdentityPool",
     "allowUnauthenticatedIdentities": false,
-    "resourceNameTruncated": "liftin14ed4a9c",
+    "resourceNameTruncated": "liftina1a9b18f",
     "userPoolName": "liftinglookupapp",
     "autoVerifiedAttributes": [
       "email"
@@ -27,9 +27,9 @@
     "userpoolClientRefreshTokenValidity": 30,
     "userpoolClientWriteAttributes": [],
     "userpoolClientReadAttributes": [],
-    "userpoolClientLambdaRole": "liftin14ed4a9c_userpoolclient_lambda_role",
+    "userpoolClientLambdaRole": "liftina1a9b18f_userpoolclient_lambda_role",
     "userpoolClientSetAttributes": false,
-    "sharedId": "14ed4a9c",
+    "sharedId": "a1a9b18f",
     "resourceName": "liftinglookupapp",
     "authSelections": "identityPoolAndUserPool",
     "serviceName": "Cognito",

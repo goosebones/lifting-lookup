@@ -1,6 +1,6 @@
 {
   "api": {
-    "liftinglookupappapi": {
+    "liftinglookupapp": {
       "dependsOn": [
         {
           "attributes": [

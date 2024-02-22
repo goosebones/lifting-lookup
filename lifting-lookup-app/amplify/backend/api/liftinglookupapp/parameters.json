@@ -1,5 +1,5 @@
 {
-  "AppSyncApiName": "liftinglookupappapi",
+  "AppSyncApiName": "liftinglookupapp",
   "DynamoDBBillingMode": "PAY_PER_REQUEST",
   "DynamoDBEnableServerSideEncryption": false,
   "AuthCognitoUserPoolId": {
@@ -7,6 +7,5 @@
       "authliftinglookupapp",
       "Outputs.UserPoolId"
     ]
-  },
-  "AuthModeLastUpdated": "2024-02-10T16:12:05.758Z"
+  }
 }

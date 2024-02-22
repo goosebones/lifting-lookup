@@ -1,7 +1,7 @@
 type VIPLifterSubscription @model @auth(rules: [{allow: owner}]) {
   id: ID!
   subscriber_email: String!
-  subscription_list: [String!]!
+  subscription_list: [String!]
   owner: String
 }
  
