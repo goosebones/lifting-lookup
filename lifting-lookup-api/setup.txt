@@ -1,0 +1,173 @@
+Here's a step-by-step guide to deploy your Flask application on an AWS EC2 instance:
+
+### 1. Prepare Your Application
+First, create a few additional files in your project directory:
+
+```text:requirements.txt
+flask
+flask-cors
+flask-caching
+boto3
+python-dotenv
+gunicorn
+```
+
+```text:wsgi.py
+from app import app
+
+if __name__ == "__main__":
+    app.run()
+```
+
+### 2. Launch EC2 Instance
+1. Go to AWS Console → EC2 Dashboard
+2. Click "Launch Instance"
+3. Configure your instance:
+   - Choose "Ubuntu Server 22.04 LTS" as the AMI
+   - Select t2.micro (free tier) or larger instance type
+   - Configure Security Group:
+     - Allow SSH (Port 22) from your IP
+     - Allow HTTP (Port 80) from anywhere
+     - Allow HTTPS (Port 443) from anywhere
+     - Allow Custom TCP (Port 5000) from anywhere (for development)
+4. Create or select an existing key pair (.pem file)
+5. Launch the instance
+
+### 3. Connect to Your EC2 Instance
+```bash
+# Change permissions of your key file
+chmod 400 your-key.pem
+
+# SSH into your instance
+ssh -i your-key.pem ubuntu@your-ec2-public-dns
+```
+
+### 4. Set Up the Server
+```bash
+# Update package manager
+sudo apt update
+sudo apt upgrade -y
+
+# Install Python and required tools
+sudo apt install -y python3-pip python3-venv nginx
+
+# Create a directory for your application
+mkdir ~/myapp
+cd ~/myapp
+
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 5. Deploy Your Application
+```bash
+# Copy your application files to the EC2 instance
+# Run this from your local machine:
+scp -i your-key.pem -r ./app.py ./requirements.txt ./wsgi.py ./.env ubuntu@your-ec2-public-dns:~/myapp/
+
+# Back on EC2, install dependencies
+cd ~/myapp
+pip install -r requirements.txt
+```
+
+### 6. Set Up Gunicorn
+```bash
+# Test Gunicorn
+gunicorn --bind 0.0.0.0:5000 wsgi:app
+
+# Create a systemd service file
+sudo nano /etc/systemd/system/myapp.service
+```
+
+```text:/etc/systemd/system/myapp.service
+[Unit]
+Description=Gunicorn instance to serve myapp
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/myapp
+Environment="PATH=/home/ubuntu/myapp/venv/bin"
+ExecStart=/home/ubuntu/myapp/venv/bin/gunicorn --workers 3 --bind unix:myapp.sock -m 007 wsgi:app
+
+[Install]
+WantedBy=multi-user.target
+```
+
+### 7. Configure Nginx
+```bash
+# Create Nginx configuration
+sudo nano /etc/nginx/sites-available/myapp
+```
+
+```text:/etc/nginx/sites-available/myapp
+server {
+    listen 80;
+    server_name your_domain_or_ip;
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/home/ubuntu/myapp/myapp.sock;
+    }
+}
+```
+
+```bash
+# Create symbolic link
+sudo ln -s /etc/nginx/sites-available/myapp /etc/nginx/sites-enabled
+
+# Test Nginx configuration
+sudo nginx -t
+
+# Remove default Nginx configuration (optional)
+sudo rm /etc/nginx/sites-enabled/default
+```
+
+### 8. Start Services
+```bash
+# Start and enable Gunicorn service
+sudo systemctl start myapp
+sudo systemctl enable myapp
+
+# Restart Nginx
+sudo systemctl restart nginx
+```
+
+### 9. Monitor Logs
+```bash
+# View application logs
+sudo journalctl -u myapp.service
+
+# View Nginx logs
+sudo tail -f /var/log/nginx/access.log
+sudo tail -f /var/log/nginx/error.log
+```
+
+### Additional Security Considerations:
+1. Set up proper IAM roles for EC2 to access DynamoDB
+2. Configure SSL/TLS with Let's Encrypt
+3. Set up proper firewall rules
+4. Consider using AWS Secrets Manager for environment variables
+
+### Troubleshooting:
+- Check service status: `sudo systemctl status myapp`
+- Check Nginx status: `sudo systemctl status nginx`
+- Check permissions: Ensure your application directory and files have correct permissions
+- View logs as shown in step 9
+
+### To update your application:
+```bash
+# Copy new files to server
+scp -i your-key.pem -r ./updated_files ubuntu@your-ec2-public-dns:~/myapp/
+
+# Restart the service
+sudo systemctl restart myapp
+```
+
+Remember to:
+1. Replace `your-key.pem` with your actual key file name
+2. Replace `your-ec2-public-dns` with your actual EC2 public DNS
+3. Replace `your_domain_or_ip` in the Nginx configuration with your actual domain or IP
+4. Ensure your `.env` file contains all necessary environment variables
+5. Configure your security groups to allow traffic on the necessary ports
