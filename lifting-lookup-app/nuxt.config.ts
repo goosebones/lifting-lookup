@@ -28,7 +28,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      apiBaseUrl: 'https://bnx2iizo91.execute-api.us-east-2.amazonaws.com/prod'
+      apiBaseUrl: 'https://api.liftinglookup.com'
     }
   }
 })

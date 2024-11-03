@@ -40,10 +40,18 @@ export default {
   async created() {
     try {
       this.loading = true;
-      const res = (await this.$axios.get("/lifter")).data.data;
+      const res = (
+        await this.$axios.get("/lifters", {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        })
+      ).data.data;
       this.lifters = JSON.parse(res.lifters);
       this.lastUpdated = res.last_updated;
-    } catch {
+    } catch (e) {
+      console.log(e);
       this.$toast.error("Error loading lifters");
     } finally {
       this.loading = false;
