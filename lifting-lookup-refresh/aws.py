@@ -65,6 +65,9 @@ class DynamoVIPLifterSubscription:
         return pd.DataFrame(subs)
 
     def get_notification_list(self, subscriptions, lifters):
+        if lifters.empty or subscriptions.empty:
+            return pd.DataFrame()
+
         def scrub_lifter_lifter_name(lifter):
             name = lifter["lifter_name"]
             scrubbed_name = re.sub(r"[\d\s-]+", "", name).lower()
@@ -108,6 +111,9 @@ class SESVIPLifterNotification:
         return body
 
     def send_vip_lifter_notification_emails(self, notifications):
+        if notifications.empty:
+            return
+
         emails_dict = {
             group_key: group_rows.to_dict(orient="records")
             for group_key, group_rows in notifications.groupby("subscriber_email")
