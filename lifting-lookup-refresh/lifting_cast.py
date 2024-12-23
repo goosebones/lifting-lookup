@@ -19,15 +19,17 @@ class LiftingCast:
         return meet_list
 
     def process_meet(self, meet):
+        # lifter documents always start with "l".
+        # query only couchdb documents beginning with "l" to avoid downloading other document types
         meet_docs = requests.get(
-            f"https://couchdb.liftingcast.com/{meet['_id']}_readonly/_all_docs?include_docs=true&conflicts=true"
+            f"https://couchdb.liftingcast.com/{meet['_id']}_readonly/_all_docs?include_docs=true&startkey=\"l\"&endkey=\"l\ufff0\""
         )
         meet_docs = meet_docs.json()
         docs = meet_docs["rows"]
         meet_lifters = []
         for doc in docs:
             try:
-                if "wasDrugTested" in doc["doc"] and "name" in doc["doc"]:
+                if "name" in doc["doc"]:
                     meet_lifters.append(
                         {
                             "lifter_name": doc["doc"]["name"],
