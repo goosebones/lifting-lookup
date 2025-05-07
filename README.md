@@ -23,6 +23,6 @@ This serves as an API for fetching lifters. It is meant to be deployed as an AWS
 
 ### lifting-lookup-refresh
 
-Data for the application can be refreshed using this code. This code will use a Selenium web scraper to gather data from liftingcast.com and write it to a DynamoDB table.
+Data for the application can be refreshed using this code. This code will get data from from liftingcast.com and write it to a DynamoDB table.
 
-This code is meant to be deployed using a containerized AWS Lambda Function.
+This code is meant to be deployed using an AWS Lambda Function.
