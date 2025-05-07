@@ -1,1 +1,0 @@
-0 1 * * * bash /home/ubuntu/lifting-lookup/lifting-lookup-refresh/refresh.sh

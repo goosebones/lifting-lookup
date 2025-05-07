@@ -1,6 +1,2 @@
-awswrangler 
 boto3
-python-dotenv
-pandas
-tqdm
 requests
