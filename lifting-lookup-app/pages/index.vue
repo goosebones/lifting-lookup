@@ -41,15 +41,16 @@ export default {
     try {
       this.loading = true;
       const res = (
-        await this.$axios.get("/lifters", {
+        await this.$axios.get("/lifter", {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
         })
-      ).data.data;
-      this.lifters = JSON.parse(res.lifters);
-      this.lastUpdated = res.last_updated;
+      ).data.body;
+      const data = JSON.parse(res);
+      this.lifters = data.lifters
+      this.lastUpdated = data.last_updated
     } catch (e) {
       console.log(e);
       this.$toast.error("Error loading lifters");
