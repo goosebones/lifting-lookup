@@ -16,6 +16,13 @@ export default defineNuxtConfig({
   alias: {
     './runtimeConfig': './runtimeConfig.browser'
   },
+  nitro: {
+    // Force static output to .output/public. Without this, Nitro auto-detects
+    // the Amplify build env (AWS_APP_ID) and switches to the `aws-amplify`
+    // preset, which writes to .amplify-hosting/ and breaks the Console's
+    // `.output/public` artifact directory.
+    preset: 'static'
+  },
   vite: {
     vue: {
       template: {
